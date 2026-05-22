@@ -10,20 +10,53 @@ ADMIN_NAME = "Shahrom Ramziev"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Statistika
 stats = {"users": set(), "messages": 0, "start_time": datetime.datetime.now()}
-
-# Reaksiyalar
 REACTIONS = ["👍", "❤️", "🔥", "🥰", "👏", "😁", "🤔", "🤯", "😱", "🎉",
-             "🙏", "👌", "🕊", "🤡", "🥱", "🥴", "😍", "🐳", "❤️‍🔥", "💯"]
-
-# Tarjimon kutish holati
+             "🙏", "👌", "😍", "💯", "🎊", "😎", "🤩", "💪", "🌟", "✨"]
 user_states = {}
+word_game = {}  # uid: {"last_word": "...", "used": set()}
 
 def is_admin(message):
     return message.from_user.username == ADMIN_USERNAME
 
-# ---- /start ----
+def send(chat_id, text):
+    bot.send_message(chat_id, text)
+
+# So'zlar bazasi
+WORDS = [
+    "alma", "anor", "asal", "arpa", "aziz", "asil",
+    "bola", "bahor", "bog", "bosh", "baliq", "bozor",
+    "choy", "chaman", "chiroq", "chayon", "chol",
+    "daraxt", "dala", "davr", "daryo", "don",
+    "er", "eshik", "echki",
+    "fasl", "farzand", "fil", "ferma",
+    "gul", "gilam", "guruch", "gap",
+    "havo", "hayot", "hovuz", "holva",
+    "ilm", "inson", "it", "ip",
+    "joy", "javob", "jarlik",
+    "kema", "ko'l", "kun", "kitob", "kuch",
+    "lola", "limon", "lahza",
+    "meva", "mehr", "muzey", "mavj",
+    "non", "nur", "nok", "narx",
+    "olma", "ot", "oydin", "obod",
+    "paxta", "palak", "pichan",
+    "qoʻy", "qalam", "qayiq", "qor",
+    "rang", "rasm", "rahmat",
+    "sabzi", "suv", "sog", "sariq",
+    "tog", "tosh", "tulki", "tuproq",
+    "urug", "uy", "umid",
+    "vatan", "vaqt",
+    "xurmo", "xabar", "xona",
+    "yulduz", "yol", "yoz", "yigit",
+    "zamin", "zavq", "ziyrak"
+]
+
+def get_bot_word(last_letter, used_words):
+    candidates = [w for w in WORDS if w[0] == last_letter and w not in used_words]
+    if candidates:
+        return random.choice(candidates)
+    return None
+
 @bot.message_handler(commands=['start'])
 def start(message):
     stats["users"].add(message.from_user.id)
@@ -31,64 +64,33 @@ def start(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("🕐 Vaqt", "📅 Sana")
     markup.add("📊 Statistika", "ℹ️ Haqida")
-    markup.add("👤 Admin", "🎲 Baxt sinab ko'r")
-    markup.add("✂️ Tosh-Qaychi-Qog'oz", "🌐 Tarjimon")
-    bot.send_message(
-        message.chat.id,
-        f"Salom *{name}*! 👋\n\n"
-        "Men kuchli Telegram botman!\n\n"
-        "✅ Har qanday xabarga reaksiya\n"
-        "✅ O'yinlar va tarjimon\n"
-        "✅ 24/7 ishlaydi",
-        parse_mode="Markdown",
-        reply_markup=markup
-    )
+    markup.add("👤 Admin", "🎲 Baxt sinab kor")
+    markup.add("✂️ Tosh-Qaychi-Qogoz", "🌐 Tarjimon")
+    markup.add("🐍 Soz oyini")
+    bot.send_message(message.chat.id, "Salom " + name + "! Botga xush kelibsiz!", reply_markup=markup)
 
-# ---- /help ----
-@bot.message_handler(commands=['help'])
-def help_cmd(message):
-    bot.send_message(
-        message.chat.id,
-        "📋 *Barcha buyruqlar:*\n\n"
-        "/start — Botni boshlash\n"
-        "/help — Yordam\n"
-        "/ping — Bot ishlayaptimi?\n\n"
-        "🔘 *Admin buyruqlari:*\n"
-        "/broadcast — Hammaga xabar\n\n"
-        "🎯 *Tugmalar:*\n"
-        "🕐 Vaqt | 📅 Sana\n"
-        "📊 Statistika | ℹ️ Haqida\n"
-        "👤 Admin | 🎲 Baxt sinab ko'r\n"
-        "✂️ Tosh-Qaychi-Qog'oz\n"
-        "🌐 Tarjimon",
-        parse_mode="Markdown"
-    )
-
-# ---- /ping ----
 @bot.message_handler(commands=['ping'])
 def ping(message):
-    bot.send_message(message.chat.id, "🟢 Bot ishlayapti! Pong! 🏓")
+    send(message.chat.id, "Bot ishlayapti! Pong!")
 
-# ---- /broadcast ----
 @bot.message_handler(commands=['broadcast'])
 def broadcast(message):
     if not is_admin(message):
-        bot.send_message(message.chat.id, "❌ Faqat admin uchun!")
+        send(message.chat.id, "Bu buyruq faqat admin uchun!")
         return
     text = message.text.replace('/broadcast', '').strip()
     if not text:
-        bot.send_message(message.chat.id, "📢 /broadcast Salom hammaga!")
+        send(message.chat.id, "Xabar yozing: /broadcast Salom!")
         return
     count = 0
     for user_id in stats["users"]:
         try:
-            bot.send_message(user_id, f"📢 *Admin xabari:*\n\n{text}", parse_mode="Markdown")
+            bot.send_message(user_id, "Admin xabari:\n\n" + text)
             count += 1
         except:
             pass
-    bot.send_message(message.chat.id, f"✅ {count} ta foydalanuvchiga yuborildi!")
+    send(message.chat.id, str(count) + " ta foydalanuvchiga yuborildi!")
 
-# ---- Barcha xabarlar ----
 @bot.message_handler(content_types=[
     'text', 'photo', 'video', 'audio', 'document',
     'sticker', 'voice', 'video_note', 'animation'
@@ -97,7 +99,6 @@ def handle_message(message):
     stats["users"].add(message.from_user.id)
     stats["messages"] += 1
 
-    # Reaksiya
     try:
         reaction = random.choice(REACTIONS)
         bot.set_message_reaction(
@@ -106,7 +107,7 @@ def handle_message(message):
             [types.ReactionTypeEmoji(reaction)]
         )
     except Exception as e:
-        print(f"Reaksiya xatosi: {e}")
+        print("Reaksiya xatosi: " + str(e))
 
     if message.chat.type != "private":
         return
@@ -114,149 +115,218 @@ def handle_message(message):
     t = message.text if message.text else ""
     uid = message.from_user.id
 
-    # ---- Tarjimon holati ----
+    # ---- SOZ OYINI ----
+    if user_states.get(uid) == "word_game":
+        if t == "🔙 Orqaga":
+            user_states.pop(uid, None)
+            word_game.pop(uid, None)
+            start(message)
+            return
+
+        word = t.lower().strip()
+
+        if uid not in word_game:
+            # Birinchi so'z
+            if len(word) < 2:
+                send(message.chat.id, "Kamida 2 harfli soz yozing!")
+                return
+            word_game[uid] = {"last_word": word, "used": {word}, "score": 0}
+            last_letter = word[-1]
+            bot_word = get_bot_word(last_letter, word_game[uid]["used"])
+            if bot_word:
+                word_game[uid]["used"].add(bot_word)
+                word_game[uid]["last_word"] = bot_word
+                send(message.chat.id,
+                    "Siz: " + word + "\n"
+                    "Bot: " + bot_word + "\n\n"
+                    "Navbat sizda! " + bot_word[-1].upper() + " harfidan boshlang!"
+                )
+            else:
+                send(message.chat.id, "Bot soz topolmadi! Siz yutdingiz!")
+                word_game.pop(uid, None)
+            return
+
+        game = word_game[uid]
+        last_word = game["last_word"]
+        expected_letter = last_word[-1]
+
+        if len(word) < 2:
+            send(message.chat.id, "Kamida 2 harfli soz yozing!")
+            return
+
+        if word[0] != expected_letter:
+            send(message.chat.id,
+                "Notogri! Soz '" + expected_letter.upper() + "' harfidan boshlanishi kerak!\n"
+                "Qayta urinib koring."
+            )
+            return
+
+        if word in game["used"]:
+            send(message.chat.id, "Bu soz allaqachon ishlatilgan! Boshqa soz yozing.")
+            return
+
+        game["used"].add(word)
+        game["score"] += 1
+        last_letter = word[-1]
+        bot_word = get_bot_word(last_letter, game["used"])
+
+        if bot_word:
+            game["used"].add(bot_word)
+            game["last_word"] = bot_word
+            send(message.chat.id,
+                "Siz: " + word + "\n"
+                "Bot: " + bot_word + "\n\n"
+                "Hisob: " + str(game["score"]) + " ta soz\n"
+                "Navbat sizda! '" + bot_word[-1].upper() + "' harfidan boshlang!"
+            )
+        else:
+            send(message.chat.id,
+                "Siz: " + word + "\n\n"
+                "Bot soz topolmadi!\n"
+                "Siz yutdingiz! Hisob: " + str(game["score"]) + " ta soz"
+            )
+            word_game.pop(uid, None)
+            user_states.pop(uid, None)
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add("🔄 Qayta oynash", "🔙 Orqaga")
+            bot.send_message(message.chat.id, "Tabriklaymiz!", reply_markup=markup)
+        return
+
+    # ---- TARJIMON ----
     if user_states.get(uid) == "translate":
         if t == "🔙 Orqaga":
             user_states.pop(uid, None)
             start(message)
             return
-        # MyMemory API orqali tarjima (bepul)
         try:
-            url = f"https://api.mymemory.translated.net/get?q={requests.utils.quote(t)}&langpair=auto|uz"
+            url = "https://api.mymemory.translated.net/get?q=" + requests.utils.quote(t) + "&langpair=auto|uz"
             resp = requests.get(url, timeout=5)
             data = resp.json()
             translated = data["responseData"]["translatedText"]
-            bot.send_message(
-                message.chat.id,
-                f"🌐 *Tarjima:*\n\n"
-                f"📝 Asl: _{t}_\n"
-                f"✅ Tarjima: *{translated}*",
-                parse_mode="Markdown"
-            )
+            send(message.chat.id, "Asl: " + t + "\n\nTarjima: " + translated)
         except:
-            bot.send_message(message.chat.id, "❌ Tarjima xatosi. Qayta urinib ko'ring!")
+            send(message.chat.id, "Tarjima xatosi. Qayta urinib koring!")
         return
 
-    # ---- Tosh-Qaychi-Qog'oz holati ----
+    # ---- TOSH-QAYCHI-QOGOZ ----
     if user_states.get(uid) == "tqq":
-        choices = {"🪨 Tosh": "tosh", "✂️ Qaychi": "qaychi", "📄 Qog'oz": "qogoz"}
         if t == "🔙 Orqaga":
             user_states.pop(uid, None)
             start(message)
             return
-        if t in choices:
-            user = choices[t]
+        choices_map = {"Tosh": "tosh", "Qaychi": "qaychi", "Qogoz": "qogoz"}
+        user_choice = None
+        for key in choices_map:
+            if key in t:
+                user_choice = choices_map[key]
+                break
+        if user_choice:
             bot_choice = random.choice(["tosh", "qaychi", "qogoz"])
-            bot_emoji = {"tosh": "🪨 Tosh", "qaychi": "✂️ Qaychi", "qogoz": "📄 Qog'oz"}
-            
-            if user == bot_choice:
-                result = "🤝 Durrang!"
-            elif (user == "tosh" and bot_choice == "qaychi") or \
-                 (user == "qaychi" and bot_choice == "qogoz") or \
-                 (user == "qogoz" and bot_choice == "tosh"):
-                result = "🎉 Siz yutdingiz!"
+            bot_emoji = {"tosh": "Tosh", "qaychi": "Qaychi", "qogoz": "Qogoz"}
+            if user_choice == bot_choice:
+                result = "Durrang!"
+            elif (user_choice == "tosh" and bot_choice == "qaychi") or \
+                 (user_choice == "qaychi" and bot_choice == "qogoz") or \
+                 (user_choice == "qogoz" and bot_choice == "tosh"):
+                result = "Siz yutdingiz!"
             else:
-                result = "😢 Bot yutdi!"
-            
-            bot.send_message(
-                message.chat.id,
-                f"Siz: *{t}*\n"
-                f"Bot: *{bot_emoji[bot_choice]}*\n\n"
-                f"{result}",
-                parse_mode="Markdown"
-            )
+                result = "Bot yutdi!"
+            send(message.chat.id,
+                "Siz: " + t + "\nBot: " + bot_emoji[bot_choice] + "\n\n" + result)
         return
 
-    # ---- Asosiy tugmalar ----
-    if t == "🕐 Vaqt":
-        bot.send_message(
-            message.chat.id,
-            datetime.datetime.now().strftime("🕐 *%H:%M:%S*"),
-            parse_mode="Markdown"
-        )
+    # ---- ASOSIY MENYУ ----
+    if t == "🔄 Qayta oynash":
+        user_states[uid] = "word_game"
+        word_game.pop(uid, None)
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add("🔙 Orqaga")
+        bot.send_message(message.chat.id,
+            "Soz oyini boshlandi!\n\n"
+            "Qoidalar:\n"
+            "- Har bir soz oldingi sozning oxirgi harfidan boshlansin\n"
+            "- Bir soz ikki marta ishlatilmaydi\n"
+            "- Kamida 2 harfli sozlar\n\n"
+            "Birinchi sozni yozing!",
+            reply_markup=markup)
+
+    elif t == "🐍 Soz oyini":
+        user_states[uid] = "word_game"
+        word_game.pop(uid, None)
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add("🔙 Orqaga")
+        bot.send_message(message.chat.id,
+            "Soz oyini boshlandi!\n\n"
+            "Qoidalar:\n"
+            "- Har bir soz oldingi sozning oxirgi harfidan boshlansin\n"
+            "- Bir soz ikki marta ishlatilmaydi\n"
+            "- Kamida 2 harfli sozlar\n\n"
+            "Birinchi sozni yozing!",
+            reply_markup=markup)
+
+    elif t == "🕐 Vaqt":
+        send(message.chat.id, "Hozirgi vaqt: " + datetime.datetime.now().strftime("%H:%M:%S"))
 
     elif t == "📅 Sana":
         weekdays = ["Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba","Yakshanba"]
         day = weekdays[datetime.datetime.now().weekday()]
         date = datetime.datetime.now().strftime("%d.%m.%Y")
-        bot.send_message(
-            message.chat.id,
-            f"📅 *{date}*\n📆 {day}",
-            parse_mode="Markdown"
-        )
+        send(message.chat.id, "Bugun: " + date + "\nKun: " + day)
 
     elif t == "📊 Statistika":
         uptime = datetime.datetime.now() - stats["start_time"]
         hours = int(uptime.total_seconds() // 3600)
         minutes = int((uptime.total_seconds() % 3600) // 60)
-        bot.send_message(
-            message.chat.id,
-            f"📊 *Statistika:*\n\n"
-            f"👥 Foydalanuvchilar: {len(stats['users'])}\n"
-            f"💬 Xabarlar: {stats['messages']}\n"
-            f"⏱ Ishlash vaqti: {hours}s {minutes}d",
-            parse_mode="Markdown"
+        send(message.chat.id,
+            "Statistika:\n\n"
+            "Foydalanuvchilar: " + str(len(stats["users"])) + "\n"
+            "Xabarlar: " + str(stats["messages"]) + "\n"
+            "Ishlash vaqti: " + str(hours) + "s " + str(minutes) + "d"
         )
 
     elif t == "👤 Admin":
-        bot.send_message(
-            message.chat.id,
-            f"👤 *Admin:*\n\n"
-            f"Ism: {ADMIN_NAME}\n"
-            f"Username: @{ADMIN_USERNAME}\n\n"
-            f"Muammo bo'lsa admin bilan bog'laning!",
-            parse_mode="Markdown"
-        )
+        send(message.chat.id,
+            "Admin:\n\nIsm: " + ADMIN_NAME + "\nUsername: @" + ADMIN_USERNAME)
 
-    elif t == "🎲 Baxt sinab ko'r":
+    elif t == "🎲 Baxt sinab kor":
         lucky = random.randint(1, 100)
         if lucky >= 80:
-            msg = f"🎉 Omadingiz {lucky}% — Bugun juda omadli kun!"
+            msg = "Omadingiz " + str(lucky) + "% - Bugun juda omadli kun!"
         elif lucky >= 50:
-            msg = f"😊 Omadingiz {lucky}% — Yaxshi kun!"
+            msg = "Omadingiz " + str(lucky) + "% - Yaxshi kun!"
         elif lucky >= 30:
-            msg = f"😐 Omadingiz {lucky}% — O'rtacha kun."
+            msg = "Omadingiz " + str(lucky) + "% - Ortacha kun."
         else:
-            msg = f"😅 Omadingiz {lucky}% — Ehtiyot bo'ling!"
-        bot.send_message(message.chat.id, msg)
+            msg = "Omadingiz " + str(lucky) + "% - Ehtiyot boling!"
+        send(message.chat.id, msg)
 
-    elif t == "✂️ Tosh-Qaychi-Qog'oz":
+    elif t == "✂️ Tosh-Qaychi-Qogoz":
         user_states[uid] = "tqq"
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.add("🪨 Tosh", "✂️ Qaychi", "📄 Qog'oz")
+        markup.add("Tosh", "Qaychi", "Qogoz")
         markup.add("🔙 Orqaga")
-        bot.send_message(
-            message.chat.id,
-            "✂️ *Tosh-Qaychi-Qog'oz!*\n\nTanlang:",
-            parse_mode="Markdown",
-            reply_markup=markup
-        )
+        bot.send_message(message.chat.id, "Tosh-Qaychi-Qogoz! Tanlang:", reply_markup=markup)
 
     elif t == "🌐 Tarjimon":
         user_states[uid] = "translate"
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add("🔙 Orqaga")
-        bot.send_message(
-            message.chat.id,
-            "🌐 *Tarjimon*\n\n"
-            "Istalgan tilda matn yozing — O'zbek tiliga tarjima qilaman!",
-            parse_mode="Markdown",
-            reply_markup=markup
-        )
+        bot.send_message(message.chat.id,
+            "Tarjimon - Istalgan tilda yozing, Uzbek tiliga tarjima qilaman!",
+            reply_markup=markup)
 
     elif t == "ℹ️ Haqida":
-        bot.send_message(
-            message.chat.id,
-            "🤖 *Bot haqida:*\n\n"
-            "• Har qanday xabarga reaksiya\n"
-            "• Guruh va kanallarda ishlaydi\n"
-            "• 24/7 Render serverda\n"
-            "• Statistika tizimi\n"
-            "• Admin panel\n"
-            "• Tosh-Qaychi-Qog'oz o'yini\n"
-            "• Tarjimon (har qanday til → O'zbek)\n"
-            f"• Admin: @{ADMIN_USERNAME}",
-            parse_mode="Markdown"
+        send(message.chat.id,
+            "Bot haqida:\n\n"
+            "- Har qanday xabarga reaksiya\n"
+            "- Guruh va kanallarda ishlaydi\n"
+            "- 24/7 Render serverda\n"
+            "- Statistika tizimi\n"
+            "- Admin panel\n"
+            "- Tosh-Qaychi-Qogoz oyini\n"
+            "- Soz oyini\n"
+            "- Tarjimon\n"
+            "- Admin: @" + ADMIN_USERNAME
         )
 
     else:
@@ -271,21 +341,17 @@ def handle_message(message):
                 elif op == '*': result = a * b
                 elif op == '/':
                     if b == 0:
-                        bot.send_message(message.chat.id, "❌ Nolga bo'lish mumkin emas!")
+                        send(message.chat.id, "Nolga bolish mumkin emas!")
                         return
                     result = a / b
                 else:
                     raise ValueError
                 result_str = int(result) if result == int(result) else round(result, 4)
-                bot.send_message(
-                    message.chat.id,
-                    f"🧮 {t} = *{result_str}*",
-                    parse_mode="Markdown"
-                )
+                send(message.chat.id, t + " = " + str(result_str))
             else:
-                bot.send_message(message.chat.id, f"📩 _{t}_", parse_mode="Markdown")
+                send(message.chat.id, "Siz yozdingiz: " + t)
         except:
-            bot.send_message(message.chat.id, f"📩 _{t}_", parse_mode="Markdown")
+            send(message.chat.id, "Siz yozdingiz: " + t)
 
-print("✅ Bot ishga tushdi!")
+print("Bot ishga tushdi!")
 bot.polling(none_stop=True)
