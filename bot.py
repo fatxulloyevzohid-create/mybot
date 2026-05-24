@@ -20,7 +20,7 @@ def is_subscribed(user_id):
 
 def main_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("🛡 VPN sotib olish", "🤖 Bot yaratish")
+    markup.add("🛡 VPN", "🤖 Bot yasash")
     markup.add("📞 Murojaat", "ℹ️ Haqida")
     return markup
 
@@ -55,7 +55,7 @@ def check_sub(call):
             "Bizning xizmatlar:\n\n"
             "VPN - 20,000 so'm\n"
             "VPN Pro - 50,000 so'm\n"
-            "Bot yaratish - 50,000 dan 200,000 so'mgacha\n\n"
+            "Bot yasash - 50,000 dan 200,000 so'mgacha\n\n"
             "Quyidagi tugmalardan birini tanlang:",
             reply_markup=main_menu()
         )
@@ -75,12 +75,12 @@ def start(message):
         "Bizning xizmatlar:\n\n"
         "VPN - 20,000 so'm\n"
         "VPN Pro - 50,000 so'm\n"
-        "Bot yaratish - 50,000 dan 200,000 so'mgacha\n\n"
+        "Bot yasash - 50,000 dan 200,000 so'mgacha\n\n"
         "Quyidagi tugmalardan birini tanlang:",
         reply_markup=main_menu()
     )
 
-@bot.message_handler(func=lambda m: m.text == "🛡 VPN sotib olish")
+@bot.message_handler(func=lambda m: m.text == "🛡 VPN")
 def vpn_menu(message):
     if not is_subscribed(message.from_user.id):
         sub_required(message)
@@ -106,14 +106,8 @@ def vpn_oddiy(message):
         sub_required(message)
         return
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(
-        "📞 " + ADMIN_NAME + " ga yozish",
-        url=ADMIN_LINK
-    ))
-    markup.add(types.InlineKeyboardButton(
-        "📢 " + CHANNEL_NAME,
-        url=CHANNEL_LINK
-    ))
+    markup.add(types.InlineKeyboardButton("📞 " + ADMIN_NAME + " ga yozish", url=ADMIN_LINK))
+    markup.add(types.InlineKeyboardButton("📢 " + CHANNEL_NAME, url=CHANNEL_LINK))
     bot.send_message(
         message.chat.id,
         "VPN - 20,000 so'm\n\n"
@@ -135,14 +129,8 @@ def vpn_pro(message):
         sub_required(message)
         return
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(
-        "📞 " + ADMIN_NAME + " ga yozish",
-        url=ADMIN_LINK
-    ))
-    markup.add(types.InlineKeyboardButton(
-        "📢 " + CHANNEL_NAME,
-        url=CHANNEL_LINK
-    ))
+    markup.add(types.InlineKeyboardButton("📞 " + ADMIN_NAME + " ga yozish", url=ADMIN_LINK))
+    markup.add(types.InlineKeyboardButton("📢 " + CHANNEL_NAME, url=CHANNEL_LINK))
     bot.send_message(
         message.chat.id,
         "VPN Pro - 50,000 so'm\n\n"
@@ -161,7 +149,7 @@ def vpn_pro(message):
         reply_markup=markup
     )
 
-@bot.message_handler(func=lambda m: m.text == "🤖 Bot yaratish")
+@bot.message_handler(func=lambda m: m.text == "🤖 Bot yasash")
 def bot_menu(message):
     if not is_subscribed(message.from_user.id):
         sub_required(message)
@@ -173,7 +161,7 @@ def bot_menu(message):
     markup.add("🔙 Orqaga")
     bot.send_message(
         message.chat.id,
-        "Bot yaratish narxlari:\n\n"
+        "Bot yasash narxlari:\n\n"
         "Oddiy bot - 50,000 so'm\n"
         "Buyruqlar, tugmalar, javoblar\n\n"
         "O'rta bot - 100,000 so'm\n"
@@ -190,10 +178,7 @@ def bot_order(message):
         sub_required(message)
         return
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(
-        "📞 " + ADMIN_NAME + " ga yozish",
-        url=ADMIN_LINK
-    ))
+    markup.add(types.InlineKeyboardButton("📞 " + ADMIN_NAME + " ga yozish", url=ADMIN_LINK))
     bot.send_message(
         message.chat.id,
         "Siz tanladingiz:\n" + message.text + "\n\n"
@@ -235,7 +220,7 @@ def about(message):
         "Biz haqimizda:\n\n"
         "VPN - 20,000 so'm\n"
         "VPN Pro - 50,000 so'm\n\n"
-        "Bot yaratish:\n"
+        "Bot yasash:\n"
         "Oddiy - 50,000 so'm\n"
         "O'rta - 100,000 so'm\n"
         "Murakkab - 200,000 so'm\n\n"
@@ -257,4 +242,4 @@ def other(message):
 
 print("Bot ishga tushdi!")
 bot.polling(none_stop=True)
-  
+        
